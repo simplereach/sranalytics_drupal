@@ -1,0 +1,7 @@
+name = SimpleReach
+description = <a href="https://drupal.org/sandbox/holyfire/2163477">Meredith Corporation Sponsored</a> SimpleReach Implementation
+package = "Simple Reach"
+core = 7.x
+
+configure = admin/config/services/simplereach
+files[] = simplereach.module
