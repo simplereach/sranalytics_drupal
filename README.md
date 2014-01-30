@@ -1,7 +1,26 @@
-Copy the folder to your sites/all/modules or sites/all/modules/contrib folder and enable. 
+# SimpleReach Analytics for Drupal
+SimpleReach Analytics finds trending articles and gives publishers deep insights into their social traffic and branded content.
 
-This module is compatible with any 7.x drupal instances.
+## Installation
 
-You must assign a valid SimpleReach PID in order for the module to work and select the appropriate categories for the content you have selected.    http://simplereach.com/docs/
+Copy the simplereach analytics plugin folder to your _sites/all/modules_ or _sites/all/modules/contrib_ folder and enable it in the Drupal admin.
 
-Thanks go to the Meredith Corporation which sponsored this module.
+You must assign a valid SimpleReach PID in order for the module to work and select the appropriate categories for the content you have selected.
+
+### Compatibility
+
+This module is compatible with any Drupal 7.x.
+
+## Support
+
+Pull requests are accepted. If you have any questions beyond what is here, email [SimpleReach Support](mailto:support@simplereach.com).
+
+
+## Authors
+
+Initially built by a team at Meredith Corporation.
+
+* Aaron Staker
+* Scott Phillips
+* Shankar Srinivasan
+* Joshua Stewardson
