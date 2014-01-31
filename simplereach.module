@@ -67,6 +67,13 @@ function simplereach_settings_form(){
         '#maxlength' => 24,
 	);
 
+	$form['simplereach']['domain'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Simple Reach Domain'),
+		'#description' => t('If your site makes use of custom domains, you may need to set this value. See http://simplereach.com/docs/custom-domains/'),
+		'#default_value' => variable_get('simplereach_domain', ''),
+	);
+
     $form['simplereach']['include_fieldset'] = array(
     '#type' => 'fieldset',
     '#title' => t('Include Content Types'),
@@ -108,6 +115,7 @@ function simplereach_settings_form_submit(&$form, &$form_state){
 
 	//Saves variables to the database.
 	variable_set('simplereach_pid', $form_values['pid']);
+	variable_set('simplereach_domain', $form_values['domain']);
   variable_set('simplereach_content_type', $form_values['include_content_types']);
   //Confirms the PID
   drupal_set_message (t("PID is set to @pid.", array('@pid' => $form_state['values']['pid'])));
@@ -140,6 +148,7 @@ function simplereach_preprocess_page(&$variables) {
 
 
     $pid = variable_get('simplereach_pid');
+    $domain = variable_get('simplereach_domain');
     $title = $node->title;
     $url = 'http://' .$_SERVER['HTTP_HOST'] .'/'.drupal_get_path_alias('node/'.arg(1));
 
@@ -147,8 +156,6 @@ function simplereach_preprocess_page(&$variables) {
     $authors = $node->name;
     $channels = simplereach_get_channels($node);
     $tags = simplereach_get_tags($node->field_tags);
-
-    $domain = 'http://' .$_SERVER['HTTP_HOST'];
 
   $formatted_date = date('c',$created);
 
@@ -162,8 +169,12 @@ function simplereach_preprocess_page(&$variables) {
     		tags: [$tags],
     		landing_url: '$url',
     		iframe: true,
-    		ignore_errors: false,
-    		domain: '$domain'
+    		ignore_errors: false, ");
+	if(!empty($domain)) {
+		$script .= ("
+    		domain: '$domain' ");
+	}
+	$script .= ("
     	};
     	(function(){
   			var s = document.createElement('script');
