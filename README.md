@@ -24,3 +24,7 @@ Initially built by a team at Meredith Corporation.
 * Scott Phillips
 * Shankar Srinivasan
 * Joshua Stewardson
+
+### Additional contributors
+
+* Marty Mulligan (@dennisusdev)
