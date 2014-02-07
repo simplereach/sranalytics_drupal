@@ -161,7 +161,7 @@ function simplereach_preprocess_page(&$variables) {
 
   $script = ("__reach_config = {
     		pid: '$pid',
-    		title: '$title',
+    		title: '".addslashes($title)."',
     		url: '$url',
     		date: '$formatted_date',
     		authors: ['$authors'],
