@@ -131,72 +131,68 @@ function simplereach_settings_form_submit(&$form, &$form_state){
 */
 function simplereach_preprocess_page(&$variables) {
    if ('node' == arg(0) && is_numeric(arg(1))) {
-    $node = node_load(arg(1));
+     $node = node_load(arg(1));
 
-  //Find the content types that this should appear on.
-  $simplereach_content_type_get = variable_get('simplereach_content_type');
-  $selected_content_types = array();
-  //Determines if the content type is true and builds an array of the selected content types.
-  foreach($simplereach_content_type_get as $content_type){
-    if($content_type != '0'){
-      $selected_content_types[] = $content_type;
-    }
-  }
+     //Find the content types that this should appear on.
+     $simplereach_content_type_get = variable_get('simplereach_content_type');
+     $selected_content_types = array();
+     //Determines if the content type is true and builds an array of the selected content types.
+     foreach($simplereach_content_type_get as $content_type){
+       if($content_type != '0'){
+         $selected_content_types[] = $content_type;
+       }
+     }
 
-  //The magic happens here, if the content type is checked the JS is ran and can be viewed in the source.
-  if (in_array($node->type, $selected_content_types)){
+     //The magic happens here, if the content type is checked the JS is ran and can be viewed in the source.
+     if (in_array($node->type, $selected_content_types)){
 
 
-    $pid = variable_get('simplereach_pid');
-    $domain = variable_get('simplereach_domain');
-    $title = $node->title;
-    $url = 'http://' .$_SERVER['HTTP_HOST'] .'/'.drupal_get_path_alias('node/'.arg(1));
+       $pid = variable_get('simplereach_pid');
+       $domain = variable_get('simplereach_domain');
+       $title = $node->title;
+       $url = 'http://' .$_SERVER['HTTP_HOST'] .'/'.drupal_get_path_alias('node/'.arg(1));
 
-    $created = $node->created;
-    $authors = $node->name;
-    $channels = simplereach_get_channels($node);
-    $tags = simplereach_get_tags($node->field_tags);
+       $created = $node->created;
+       $authors = $node->name;
+       $channels = simplereach_get_channels($node);
+       $tags = simplereach_get_tags($node->field_tags);
 
-  $formatted_date = date('c',$created);
+       $formatted_date = date('c',$created);
+       $configjs = array(
+         'pid' => $pid,
+         'title' => $title,
+         'url' =>  $url,
+         'date' => $formatted_date,
+         'authors' => $authors,
+         'channels' => $channels,
+         'tags' => $tags,
+         'landing_url' => $url,
+         'iframe' =>  true,
+         'ignore_errors' => false
+       );
+       if(!empty($domain)) $configjs['domain'] = $domain;
 
-  $script = ("__reach_config = {
-    		pid: '$pid',
-    		title: '$title',
-    		url: '$url',
-    		date: '$formatted_date',
-    		authors: ['$authors'],
-    		channels: [$channels],
-    		tags: [$tags],
-    		landing_url: '$url',
-    		iframe: true,
-    		ignore_errors: false, ");
-	if(!empty($domain)) {
-		$script .= ("
-    		domain: '$domain' ");
-	}
-	$script .= ("
-    	};
-    	(function(){
-  			var s = document.createElement('script');
-  			s.async = true;
-  			s.type = 'text/javascript';
-  			s.src = document.location.protocol + '//d8rk54i4mohrb.cloudfront.net/js/reach.js';
-  			(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);
-			})();"
-    	);
-
-    drupal_add_js($script, array('scope' => 'header', 'type' => 'inline'));
-    }
-  }
-  }
+       $script = "__reach_config = " . str_replace('\/', '/', json_encode($configjs));
+       $script .= "
+        (function(){
+          var s = document.createElement('script');
+          s.async = true;
+          s.type = 'text/javascript';
+          s.src = document.location.protocol + '//d8rk54i4mohrb.cloudfront.net/js/reach.js';
+          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);
+        })();";
+       drupal_add_js($script, array('scope' => 'header', 'type' => 'inline'));
+     }
+   }
+}
 
 
 function simplereach_get_tags($field_tags){
   $tags = array();
   foreach($field_tags['und'] as $tag){
-    $tags[] = "'". taxonomy_term_load($tag['tid'])->name . "'";
+    $tags[] = taxonomy_term_load($tag['tid'])->name;
   }
-  return implode(",", $tags);
+  return $tags;
 }
 
 function simplereach_get_channels($node){
@@ -211,9 +207,9 @@ function simplereach_get_channels($node){
     }
   }
   foreach($parents as $parent){
-    $channels[] = "'". $parent->name . "'";
+    $channels[] = $parent->name;
   }
-  return implode(",", $channels);
+  return $channels;
 }
 
 
