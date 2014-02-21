@@ -172,7 +172,7 @@ function simplereach_preprocess_page(&$variables) {
        );
        if(!empty($domain)) $configjs['domain'] = $domain;
 
-       $script = "__reach_config = " . str_replace('\/', '/', json_encode($configjs));
+       $script = "__reach_config = " . str_replace('\/', '/', json_encode($configjs)) . ";";
        $script .= "
         (function(){
           var s = document.createElement('script');
