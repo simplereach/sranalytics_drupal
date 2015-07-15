@@ -28,3 +28,4 @@ Initially built by a team at Meredith Corporation.
 ### Additional contributors
 
 * Marty Mulligan (@dennisusdev)
+* Joseph Cheek (@jcheek)
