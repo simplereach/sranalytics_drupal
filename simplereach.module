@@ -2,29 +2,51 @@
 
 /**
  * @file
- * A Module developed by the Meredith Corportation for a SimpleReach Implementation.
+ * A Module developed by the Meredith Corportation for a SimpleReach
+ * Implementation.
  *
- * This module allows Simple Reach to run and associates the appropriate pub-id from simplereach.com.  Users can pick which node types (categories) which SimpleReach runs against.
+ * This module allows Simple Reach to run and associates the appropriate pub-id
+ * from simplereach.com.  Users can pick which node types (categories) which
+ * SimpleReach runs against.
  *
- * Built by Aaron Staker with assistance from Scott Phillips, Shankar Srinivasan & Joshua Stewardson.
- * Feel free to contact me with any questions or concerns aaron.staker@meredith.com, on drupal.org I go by holyfire.
+ * Built by Aaron Staker with assistance from Scott Phillips,
+ * Shankar Srinivasan, and Joshua Stewardson.
+ *
+ * Feel free to contact me with any questions or concerns:
+ * aaron.staker@meredith.com; on drupal.org I go by holyfire.
+ *
  * Sandbox project location:  https://drupal.org/sandbox/holyfire/2163477
  */
 
 
- /**
- * Implements hook_help().
- */
+/**
+* Implements hook_help().
+*/
 function simplereach_help($path, $arg) {
-  if ($path == 'admin/help#simplereach') {
-    return t('Full information on implementation can be found here:  https://drupal.org/sandbox/holyfire/2163477, 12/2013.  Admin settings are located at admin/config/services/simplereach.');
-  }
+
+  if ($path == 'admin/help#simplereach')
+    return t('Full information on implementation can be found here: !url, 12/2013.  Admin settings are located at admin/config/services/simplereach.',
+      array(
+        '!url' => l(
+          'https://drupal.org/sandbox/holyfire/2163477',
+          'https://drupal.org/sandbox/holyfire/2163477',
+          array(
+            'attributes' => array(
+              'target' => '_blank'
+            )
+          )
+        )
+      )
+    );
+
 }
+
 
 /**
 * Implements hook_menu().
 */
 function simplereach_menu() {
+
   $items = array();
 
   $items['admin/config/services/simplereach'] = array (
@@ -37,34 +59,39 @@ function simplereach_menu() {
   	);
 
   return $items;
+
 }
 
+
 /**
-* Implements hook_menu().
-*/
-  function simplereach_admin_settings(){
-	return drupal_get_form('simplereach_settings_form');
+ * Admin settings.
+ */
+function simplereach_admin_settings() {
+
+  return drupal_get_form('simplereach_settings_form');
+
 }
+
 
 /**
 * Implements hook_settings_form().
 */
-function simplereach_settings_form(){
-
+function simplereach_settings_form() {
 
   global $_simplereach_set;
-
   $settings = $_simplereach_set;
 
 	$form = array();
-  //allows the asignment of the SimpleReach PID
+
+// allows the asignment of the SimpleReach PID
 	$form['simplereach']['pid'] = array(
 		'#type' => 'textfield',
 		'#title' => t('Simple Reach PID'),
 		'#description' => t('The 24 character publisher ID provided by SimpleReach.  <b style="color: red">WARNING there is no validation beyond length.</b>'),
-		'#default_value' => variable_get('simplereach_pid', 'xxa8879300e48g84f9000009'),//the default value is 24 characters
+		'#default_value' => variable_get('simplereach_pid',
+		  'xxa8879300e48g84f9000009'), // the default value is 24 characters
 		'#required' => TRUE,
-        '#maxlength' => 24,
+    '#maxlength' => 24,
 	);
 
 	$form['simplereach']['domain'] = array(
@@ -74,27 +101,29 @@ function simplereach_settings_form(){
 		'#default_value' => variable_get('simplereach_domain', ''),
 	);
 
-    $form['simplereach']['include_fieldset'] = array(
+  $form['simplereach']['include_fieldset'] = array(
     '#type' => 'fieldset',
     '#title' => t('Include Content Types'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
+
 //shows the content types in the admin form
   $form['simplereach']['include_fieldset']['include_content_types'] = array(
     '#type' => 'checkboxes',
     '#multiple' => TRUE,
-    '#options' => array_map('check_plain',  node_type_get_names()),
+    '#options' => array_map('check_plain', node_type_get_names()),
     '#title' => t('Include Content Types'),
-    '#default_value' => variable_get('simplereach_content_type',array()),
+    '#default_value' => variable_get('simplereach_content_type', array()),
   );
 
 	$form['submit'] = array(
 		'#type' => 'submit',
-		'#value' => t("Save settings"),
+		'#value' => t('Save settings'),
 	);
 
 	return $form;
+
 }
 
 /**
@@ -104,120 +133,143 @@ function simplereach_settings_form(){
 	// Should be of exactly the correct number of characters, not currently implemented without specific criteria (also key length may change)
 
 /**
-* Implements hook_settings_form_submit().
-*
-*/
+ * Implements hook_settings_form_submit().
+ */
 function simplereach_settings_form_submit(&$form, &$form_state){
+
   global $_simplereach_defaults;
 
   $form_values = $form_state['values'];
 
-
-	//Saves variables to the database.
+// Saves variables to the database.
 	variable_set('simplereach_pid', $form_values['pid']);
 	variable_set('simplereach_domain', $form_values['domain']);
-  variable_set('simplereach_content_type', $form_values['include_content_types']);
-  //Confirms the PID
-  drupal_set_message (t("PID is set to @pid.", array('@pid' => $form_state['values']['pid'])));
+  variable_set('simplereach_content_type',
+    $form_values['include_content_types']);
 
+// Confirms the PID
+  drupal_set_message(t('PID is set to @pid.',
+    array('@pid' => $form_state['values']['pid'])));
 
-
-//  variable_set('simplereach_content_type', $form_state['values']['simplereach']['include_content_types']);
-//	dpm($simplereach);
 }
+
 
 /**
-* Implements hook_preprocess().
-*/
+ * Implements hook_preprocess().
+ */
 function simplereach_preprocess_page(&$variables) {
-   if ('node' == arg(0) && is_numeric(arg(1))) {
-     $node = node_load(arg(1));
 
-     //Find the content types that this should appear on.
-     $simplereach_content_type_get = variable_get('simplereach_content_type');
-     $selected_content_types = array();
-     //Determines if the content type is true and builds an array of the selected content types.
-     foreach($simplereach_content_type_get as $content_type){
-       if($content_type != '0'){
-         $selected_content_types[] = $content_type;
-       }
-     }
+  if ('node' == arg(0) && is_numeric(arg(1))) {
 
-     //The magic happens here, if the content type is checked the JS is ran and can be viewed in the source.
-     if (in_array($node->type, $selected_content_types)){
+    $node = node_load(arg(1));
 
+// Find the content types that this should appear on.
+    $simplereach_content_type_get = variable_get('simplereach_content_type');
+    $selected_content_types = array();
 
-       $pid = variable_get('simplereach_pid');
-       $domain = variable_get('simplereach_domain');
-       $title = $node->title;
-       $url = 'http://' .$_SERVER['HTTP_HOST'] .'/'.drupal_get_path_alias('node/'.arg(1));
+// Determine if the content type is true and build an array
+// of the selected content types.
+    foreach ($simplereach_content_type_get as $content_type)
+      if ($content_type != '0')
+        $selected_content_types[] = $content_type;
 
-       $created = $node->created;
-       $authors = $node->name;
-       $channels = simplereach_get_channels($node);
-       $tags = simplereach_get_tags($node->field_tags);
+// The magic happens here -- if the content type is checked, the JS is added
+    if (in_array($node->type, $selected_content_types)) {
 
-       $formatted_date = date('c',$created);
-       $configjs = array(
-         'pid' => $pid,
-         'title' => $title,
-         'url' =>  $url,
-         'date' => $formatted_date,
-         'authors' => $authors,
-         'channels' => $channels,
-         'tags' => $tags,
-         'landing_url' => $url,
-         'iframe' =>  true,
-         'ignore_errors' => false
-       );
-       if(!empty($domain)) $configjs['domain'] = $domain;
+      $pid = variable_get('simplereach_pid');
+      $domain = variable_get('simplereach_domain');
+      $title = $node->title;
+      $url = 'http://' . $_SERVER['HTTP_HOST'] . '/'
+      . drupal_get_path_alias('node/' . arg(1));
+// @FIXME check for https? -- jwc 11Jun2015
 
-       $script = "__reach_config = " . str_replace('\/', '/', json_encode($configjs)) . ";";
-       $script .= "
+      $created = $node->created;
+      $authors = $node->name;
+      $channels = simplereach_get_channels($node);
+      $tags = simplereach_get_tags($node->field_tags);
+
+      $formatted_date = date('c', $created);
+      $configjs = array(
+        'pid' => $pid,
+        'title' => $title,
+        'url' =>  $url,
+        'date' => $formatted_date,
+        'authors' => $authors,
+        'channels' => $channels,
+        'tags' => $tags,
+        'landing_url' => $url,
+        'iframe' =>  TRUE,
+        'ignore_errors' => FALSE,
+      );
+
+      if (!empty($domain)) $configjs['domain'] = $domain;
+
+      $script = '__reach_config = ' . str_replace('\/', '/',
+        json_encode($configjs)) . ';';
+      $script .= "
         (function(){
-          var s = document.createElement('script');
-          s.async = true;
-          s.type = 'text/javascript';
-          s.src = document.location.protocol + '//d8rk54i4mohrb.cloudfront.net/js/reach.js';
-          (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);
+        var s = document.createElement('script');
+        s.async = true;
+        s.type = 'text/javascript';
+        s.src = document.location.protocol + '//d8rk54i4mohrb.cloudfront.net/js/reach.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(s);
         })();";
-       drupal_add_js($script, array('scope' => 'header', 'type' => 'inline'));
-     }
-   }
-}
+
+// @TODO: see if this script can be added as a file, with __reach_config
+// coming from Drupal.settings.  jwc 11Jun2015
+//         drupal_add_js(array('simplereach' => $configjs), 'setting');
+      drupal_add_js($script, array('scope' => 'header', 'type' => 'inline'));
+
+    } // if selected content type
+
+  } // if node
+
+} // simplereach_preprocess_page();
 
 
-function simplereach_get_tags($field_tags){
+function simplereach_get_tags($field_tags) {
+
   $tags = array();
-  foreach($field_tags['und'] as $tag){
+
+  foreach($field_tags[LANGUAGE_NONE] as $tag)
     $tags[] = taxonomy_term_load($tag['tid'])->name;
-  }
+
   return $tags;
+
 }
 
-function simplereach_get_channels($node){
+
+function simplereach_get_channels($node) {
+
   $channels = array();
   $terms = field_get_items('node', $node, 'field_category');
-  if (is_array($terms)) {
+
+  if (is_array($terms))
     foreach ($terms as $term) {
-      //get parent terms
+
+// get parent terms
       $parents = taxonomy_get_parents_all($term['tid']);
-      //make highest-level categories first in the array
+
+// make highest-level categories first in the array
       $parents = array_reverse($parents);
+
     }
-  }
-  foreach($parents as $parent){
+
+  foreach ($parents as $parent)
     $channels[] = $parent->name;
-  }
+
   return $channels;
+
 }
 
 
-function simplereach_get_content_types($simplereach_content_type){
+function simplereach_get_content_types($simplereach_content_type) {
+
   $tags = array();
-  foreach($simplereach_content_type['und'] as $tag){
-    $tags[] = "'". taxonomy_term_load($tag['tid'])->name . "'";
-  }
-  return implode(",", $tags);
-}
 
+  foreach ($simplereach_content_type[LANGUAGE_NONE] as $tag)
+    $tags[] = "'". taxonomy_term_load($tag['tid'])->name . "'";
+
+  return implode(',', $tags);
+
+}
